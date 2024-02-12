@@ -1,225 +1,65 @@
-const budget = document.getElementById("balance-amount");
-const currentAmount = document.getElementById("currentAmount");
-const expense = document.getElementById("expenseAmount")
-const add_budget_btn = document.getElementById("addBudget");
-const add_expense_btn = document.getElementById("addExpense");
-const budgetFeild = document.getElementById("budgetAmount");
-const expenseTitle = document.getElementById("expTitle");
-const expenseDesc = document.getElementById("expDesc");
-const expenseAmount = document.getElementById("expAmount");
-const expenseList = document.getElementById("expenseList");
-const deleteBtn = document.getElementById("delete");
-const resetWindow = document.getElementById("reset");
-const date = document.getElementById("date");
-let budgetNumber, expenseNumber;
-let expArray = [];
+/*The code above is a bookmarking app that stores the current tab's URL in a local storage.
 
+Args:
+self: The current window.
+new_data: The new data to be added to the bookmark.
+Returns:
+Nothing.
 
-// Add Budget To Respective Feilds 
+Time complexity: 0(n)
+*/
+ 
+let myBookmark = [];
+const inputEl = document.getElementById("input-el");
+const inputBtn = document.getElementById("input-btn");
+const deleteBtn = document.getElementById("delete-btn");
+const tabBtn = document.getElementById("tab-btn");
+const ulEl = document.getElementById("ul-el");
+const bookmarkFromLocalStorage = JSON.parse(localStorage.getItem("myBookmark"));
 
-add_budget_btn.addEventListener(
-    'click', (e) => {
-        e.preventDefault();
-        if (budgetFeild.value > 0) {
-            budget.innerText = `US ${Number(budgetFeild.value).toFixed(2)}`;
-            currentAmount.innerText = `US ${Number(budgetFeild.value).toFixed(2)}`;
-            budgetNumber = Number(budgetFeild.value);
-            expenseAmount.innerText = 'US 00,00';
-            expense.innerText = `US 00,000`;
-            expArray.length = 0;
+if (bookmarkFromLocalStorage){
+   myBookmark = bookmarkFromLocalStorage
+   renderBookmark(myBookmark);
+} 
 
-        }
-        else
-            alert("Please Enter Your Budget Amount..");
-    }
-);
+tabBtn.addEventListener("click", function()
+ {
+   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      myBookmark.push(tabs[0].url);
+      localStorage.setItem("myBookmark", JSON.stringify(myBookmark));
+      renderBookmark(myBookmark);
+   });
+ });
 
-// Function to Create Expense List
+deleteBtn.addEventListener("dblclick", function() {
+  localStorage.clear();
+  myBookmark = [];
+  renderBookmark(myBookmark);
+});
 
-const createExpenseList = (title, desc, amount, date) => {
-    let item = document.createElement("li");
-    item.className = 'item flex';
+inputBtn.addEventListener("click", function() 
+{
+   myBookmark.push(inputEl.value);
+   inputEl.value = " ";
+   localStorage.setItem("myBookmark", JSON.stringify(myBookmark));
 
-    item.innerHTML = `
-   <div class="list-expense-title-desc text-ellises flex">
-            <div class="flex fl-col list-text">
-                <div class="list-expense-title">${title}</div>
-                <div class="list-expense-desc">${desc}</div>
-            </div>
-            <div class="list-expense-amount flex fl-col">
-                <span>${amount}</span>
-                <div class="date">${date}</div>
-            </div>
-        </div>
-            <button id="edit"><ion-icon name="create-outline"></ion-icon></button>
-            <button id="delete">X</button>
-    `;
+   renderBookmark(myBookmark);
+});
 
-    expenseList.appendChild(item);
+function renderBookmark(bookmark)
+{
+   let listItems = " ";
 
-    // Function to Delete Expense Items 
+   for (let i = 0; i < bookmark.length; i++)
+   {
+      listItems += `
+         <li>
+            <a target='_blank' href='${bookmark[i]}'>
+               ${bookmark[i]}
+            </a>
+         </li>
+      `
+   }
 
-    item.querySelector("#delete").addEventListener(
-        'click', () => {
-            item.remove();
-
-            let expenditure = parentElement.querySelector("span").innerText;
-
-            budgetNumber = parseInt(budgetNumber) + parseInt(expenditure);
-            expenseNumber = expenseNumber - parseInt(expenditure);
-            expArray = [expenseNumber];
-
-            currentAmount.innerText = `US ${parseInt(budgetNumber).toFixed(2)}`;
-            expense.innerText = `US ${(expenseNumber).toFixed(2)}`;
-
-         
-
-        }
-    );
-
-    // Function to Modify list Value 
-
-    let parentElement = item.querySelector("#edit").parentNode;
-
-    item.querySelector("#edit").addEventListener(
-        'click', () => {
-
-            let flag = confirm("You want to edit the expense list?");
-            if (flag) {
-
-                let editedTitle = prompt("Please Enter the Title.");
-                let editedDesc = prompt("Enter the Description.");
-                let editedAmount = +prompt("Please Enter the Amount.");
-
-                if (editedAmount < (budgetNumber + expenseNumber)) {
-                    parentElement.querySelector(".list-expense-title").innerText = editedTitle;
-                    parentElement.querySelector(".list-expense-desc").innerText = editedDesc;
-                    parentElement.querySelector("span").innerText = editedAmount;
-
-                    budgetNumber = (budgetNumber + Number(amount)) - editedAmount;
-                    expenseNumber = (expenseNumber - Number(amount)) + editedAmount;
-                    expArray = [expenseNumber];
-                    currentAmount.innerText = `US ${Number(budgetNumber).toFixed(2)}`;
-                    expense.innerText = `US ${(expenseNumber).toFixed(2)}`;
-
-                    console.log(budgetNumber);
-                }
-                else
-                    alert("You dont have enough balance.");
-            }
-        }
-    )
+   ulEl.innerHTML = listItems;
 }
-
-
-
-
-
-let arrOfItems = [];
-var index = 0;
-
-// Class To create the List data as an Object then we push this data to our array 
-
-class List_data {
-    constructor(title, desc, amount, date) {
-        this.title = title;
-        this.desc = desc;
-        this.amount = amount;
-        this.date = date;
-    }
-}
-
-//  Add Expense to Respective Feilds 
-
-add_expense_btn.addEventListener(
-    'click', (e) => {
-
-        e.preventDefault();
-
-        if (budget.innerText === "US 00,000.00")
-            alert("Please Add Budget First!");
-
-        else {
-            if ((expenseTitle.value.length > 0 && expenseDesc.value.length > 0 && expenseAmount.value > 0 && date.value.length > 0)) {
-
-                // The Code Create Expense Items using Class and push it to the array;
-
-
-                if (budgetNumber >= expenseAmount.value) {
-                    let expenseItem = new List_data(expenseTitle.value, expenseDesc.value, expenseAmount.value, date.value);
-                    arrOfItems.push(expenseItem);
-
-
-                    createExpenseList(arrOfItems[index].title, arrOfItems[index].desc, arrOfItems[index].amount, arrOfItems[index].date);
-                    expArray.push(Number(expenseAmount.value));
-                    index++;
-
-                    expenseNumber = Number(expenseAmount.value);
-                }
-
-                console.log(expenseNumber);
-                updateBudget();
-                reset();
-            }
-        }
-    }
-);
-
-// Function To Calculate Budget and Expense:
-
-const updateBudget = () => {
-
-    if (budgetNumber >= expenseAmount.value) {
-        let currentBalanceNumber = budgetNumber - expenseNumber;
-        budgetNumber = currentBalanceNumber;
-        let currentExpenceNumber = expArray.reduce(
-            (a, b) => {
-                return a + b;
-            }
-        );
-        expenseNumber = currentExpenceNumber;
-        currentAmount.innerText = `US ${(currentBalanceNumber).toFixed(2)}`;
-        expense.innerText = `US ${(currentExpenceNumber).toFixed(2)}`;
-    }
-
-    else
-        alert("You Dont Have Enough balance");
-}
-
-
-
-resetWindow.addEventListener(
-    'click', () => {
-        location.reload();
-    }
-);
-
-// Reset Function
-
-function reset() {
-    budgetFeild.value = "";
-    expenseAmount.value = "";
-    expenseDesc.value = "";
-    expenseTitle.value = "";
-}
-
-
-
-//Add Button To Reload Page
-
-resetWindow.addEventListener(
-    'click', () => {
-        location.reload();
-    }
-);
-
-// Reset Function
-
-function reset() {
-    budgetFeild.value = "";
-    expenseAmount.value = "";
-    expenseDesc.value = "";
-    expenseTitle.value = "";
-}
-
-script.js
